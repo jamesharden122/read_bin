@@ -230,7 +230,7 @@ struct Int32TwosComp[N: Int]:
                     self.try_convert_int(tmp[4].__getitem__(0)),
                     )
             else:
-                print("Decimal to Binary Representation", tmp)#," ", len(tmp))
+                print("Decimal to Binary Representation", tmp,":", len(tmp))
             if i == 0:
                 main_array = main_array.insert[offset=0](temp_simd)
             if i == 1:

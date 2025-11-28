@@ -79,5 +79,6 @@ struct DfReader[N: Int,L: Int]:
                     var vals = col.bytes_to_float()
                     for r in range(N):
                         tensors.aligned_store[1](r, i, SIMD[DType.float64, 1](vals[r]))
+                    i+=1
         return tensors
                     

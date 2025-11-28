@@ -34,7 +34,7 @@ struct Uint64TwosComp[N: Int]:
    
     fn uint8_to_bin(self, simd_value: SIMD[DType.uint8, 8]) -> SIMD[DType.bool, 64]:
         var main_array = SIMD[DType.bool, 64]()
-        for i in range(8):
+        for i in range(8): 
             var tmp = bin(simd_value[i])
             var temp_simd = SIMD[DType.bool, 8]()
             # Handle various lengths of binary strings and convert them into SIMD vectors
@@ -91,7 +91,7 @@ struct Uint64TwosComp[N: Int]:
                     self.try_convert_int(tmp[3].__getitem__(0))
                     )
             else:
-                print("Decimal to Binary Representation", tmp)#," ", len(tmp))
+                print("Decimal to Binary Representation", tmp," ", len(tmp))
             if i == 0:
                 main_array = main_array.insert[offset=0](temp_simd)
             if i == 1:
@@ -282,6 +282,7 @@ struct Uint8TwosComp[N: Int]:
         return(dt.cast[DType.uint8]().reduce_add())     
 
     fn uint8_to_bin(self, simd_value: SIMD[DType.uint8, 1]) -> SIMD[DType.bool, 8]:
+        print(simd_value)
         var tmp = bin(simd_value)
         var temp_simd = SIMD[DType.bool, 8]()
           # Handle various lengths of binary strings and convert them into SIMD vectors

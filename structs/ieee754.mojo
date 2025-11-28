@@ -86,7 +86,6 @@ struct IEEE754Processor[N: Int]:
         var main_array = SIMD[DType.bool, 64]()
         for i in range(8):
             var tmp = bin(simd_value[i])
-            print("Decimal to Binary Representation", tmp)#," ", len(tmp))
             var temp_simd = SIMD[DType.bool, 8]()
             # Handle various lengths of binary strings and convert them into SIMD vectors
             if len(tmp) == 8:
@@ -142,22 +141,14 @@ struct IEEE754Processor[N: Int]:
                     self.try_convert_int(tmp[5].__getitem__(0)), self.try_convert_int(tmp[6].__getitem__(0))
                 )
 
-            if i == 0:
-                main_array = main_array.insert[offset=0](temp_simd)
-            if i == 1:
-                main_array = main_array.insert[offset=8](temp_simd)
-            if i == 2:
-                main_array = main_array.insert[offset=16](temp_simd)
-            if i == 3:
-                main_array = main_array.insert[offset=24](temp_simd)
-            if i == 4:
-                main_array = main_array.insert[offset=32](temp_simd)
-            if i == 5:
-                main_array = main_array.insert[offset=40](temp_simd)
-            if i == 6:
-                main_array = main_array.insert[offset=48](temp_simd)
-            if i == 7:
-                main_array = main_array.insert[offset=56](temp_simd)
+            if i == 0: main_array = main_array.insert[offset=0](temp_simd)
+            if i == 1: main_array = main_array.insert[offset=8](temp_simd)
+            if i == 2: main_array = main_array.insert[offset=16](temp_simd)
+            if i == 3: main_array = main_array.insert[offset=24](temp_simd)
+            if i == 4: main_array = main_array.insert[offset=32](temp_simd)
+            if i == 5: main_array = main_array.insert[offset=40](temp_simd)
+            if i == 6: main_array = main_array.insert[offset=48](temp_simd)
+            if i == 7: main_array = main_array.insert[offset=56](temp_simd)
 
         return main_array
 
