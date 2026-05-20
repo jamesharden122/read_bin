@@ -1,24 +1,25 @@
-from collections import InlineArray
+from std.collections import InlineArray
 
 struct IEEE754Processor[N: Int]:
-    var simd_dec_list: InlineArray[SIMD[DType.uint8,8], N]
+    var simd_dec_list: InlineArray[SIMD[DType.uint8, 8], Self.N]
     var n: Int
-    fn __init__(out self, simd_dec_list: InlineArray[SIMD[DType.uint8,8], N]):
+
+    def __init__(out self, simd_dec_list: InlineArray[SIMD[DType.uint8, 8], Self.N]):
         self.simd_dec_list = simd_dec_list
-        self.n = N
+        self.n = Self.N
         
 
     # Convert N 64-bit patterns into N Float64 values (compile-time N)
-    fn float_64_conversion(self) -> InlineArray[Float64, N]:
+    def float_64_conversion(self) -> InlineArray[Float64, Self.N]:
         var simd_processed_bits = self.process_simd_list(self.simd_dec_list)
-        var merged_simd = InlineArray[Float64, N](uninitialized=True)
-        for i in range(N):
+        var merged_simd = InlineArray[Float64, Self.N](uninitialized=True)
+        for i in range(Self.N):
             var temp_float = self.ieee_754_double_prec(simd_processed_bits[i])
             merged_simd[i] = temp_float[0]
         return merged_simd
 
     # Method to convert the binary exponent to decimal
-    fn binary_to_decimal(self, exponent_simd: SIMD[DType.bool, 16]) -> SIMD[DType.float64, 1]:
+    def binary_to_decimal(self, exponent_simd: SIMD[DType.bool, 16]) -> SIMD[DType.float64, 1]:
         var powers_of_2 = SIMD[DType.int64, 16](1024, 512, 256, 128, 64, 32, 16, 8, 4, 2, 1, 0, 0, 0, 0, 0)
         var exponent_int_simd = exponent_simd.cast[DType.int64]()
         var decimal_value = exponent_int_simd.__mul__(powers_of_2)
@@ -28,7 +29,7 @@ struct IEEE754Processor[N: Int]:
         return out
 
     # Method to create the mantissa powers of 2 SIMD
-    fn create_mantissa_powers_of_2_simd(self) -> SIMD[DType.float64, 64]:
+    def create_mantissa_powers_of_2_simd(self) -> SIMD[DType.float64, 64]:
         var powers_of_2_mantissa = SIMD[DType.float64, 64](
             2.0**-1,  2.0**-2,  2.0**-3,  2.0**-4,  2.0**-5,  2.0**-6,  2.0**-7,  2.0**-8,
             2.0**-9,  2.0**-10, 2.0**-11, 2.0**-12, 2.0**-13, 2.0**-14, 2.0**-15, 2.0**-16,
@@ -43,7 +44,7 @@ struct IEEE754Processor[N: Int]:
         return powers_of_2_mantissa
 
     # Method to convert the binary mantissa to decimal
-    fn mantissa_to_decimal(self, mantissa_simd: SIMD[DType.bool, 64]) -> SIMD[DType.float64, 1]:
+    def mantissa_to_decimal(self, mantissa_simd: SIMD[DType.bool, 64]) -> SIMD[DType.float64, 1]:
         var mantissa_float_simd = mantissa_simd.cast[DType.float64]()
         var powers_of_2 = self.create_mantissa_powers_of_2_simd()
         #print(mantissa_float_simd[0]*powers_of_2_mantissa[0])
@@ -52,7 +53,7 @@ struct IEEE754Processor[N: Int]:
         return 1 + decimal_value
 
     # Method to convert a 64-bit binary representation to IEEE 754 double precision
-    fn ieee_754_double_prec(self, simd_bool: SIMD[DType.bool, 64]) -> SIMD[DType.float64,1]:
+    def ieee_754_double_prec(self, simd_bool: SIMD[DType.bool, 64]) -> SIMD[DType.float64, 1]:
         var extended_simd = SIMD[DType.bool, 128]()
         extended_simd = extended_simd.insert[offset=0](simd_bool)
         var sign_bit: SIMD[DType.float64, 1]
@@ -73,7 +74,7 @@ struct IEEE754Processor[N: Int]:
         return(dt)
 
     # Method to try converting a string to an integer
-    fn try_convert_int(self, input_str: String) -> Bool:
+    def try_convert_int(self, input_str: String) -> Bool:
         try:
             var value = input_str.__int__()
             return Bool(value)
@@ -82,7 +83,7 @@ struct IEEE754Processor[N: Int]:
             return False
 
     # Method to convert 8 uint8 elements into a 64-bit binary representation
-    fn uint8_to_bin(self, simd_value: SIMD[DType.uint8, 8]) -> SIMD[DType.bool, 64]:
+    def uint8_to_bin(self, simd_value: SIMD[DType.uint8, 8]) -> SIMD[DType.bool, 64]:
         var main_array = SIMD[DType.bool, 64]()
         for i in range(8):
             var tmp = bin(simd_value[i])
@@ -91,54 +92,54 @@ struct IEEE754Processor[N: Int]:
             if len(tmp) == 8:
                 temp_simd = SIMD[DType.bool, 8](
                     False, False,
-                    self.try_convert_int(tmp[2].__getitem__(0)), self.try_convert_int(tmp[3].__getitem__(0)),
-                    self.try_convert_int(tmp[4].__getitem__(0)), self.try_convert_int(tmp[5].__getitem__(0)),
-                    self.try_convert_int(tmp[6].__getitem__(0)), self.try_convert_int(tmp[7].__getitem__(0))
+                    self.try_convert_int(String(tmp[byte=2])), self.try_convert_int(String(tmp[byte=3])),
+                    self.try_convert_int(String(tmp[byte=4])), self.try_convert_int(String(tmp[byte=5])),
+                    self.try_convert_int(String(tmp[byte=6])), self.try_convert_int(String(tmp[byte=7]))
                 )
             elif len(tmp) == 9:
                 temp_simd = SIMD[DType.bool, 8](
-                    False, self.try_convert_int(tmp[2].__getitem__(0)),
-                    self.try_convert_int(tmp[3].__getitem__(0)), self.try_convert_int(tmp[4].__getitem__(0)),
-                    self.try_convert_int(tmp[5].__getitem__(0)), self.try_convert_int(tmp[6].__getitem__(0)),
-                    self.try_convert_int(tmp[7].__getitem__(0)), self.try_convert_int(tmp[8].__getitem__(0))
+                    False, self.try_convert_int(String(tmp[byte=2])),
+                    self.try_convert_int(String(tmp[byte=3])), self.try_convert_int(String(tmp[byte=4])),
+                    self.try_convert_int(String(tmp[byte=5])), self.try_convert_int(String(tmp[byte=6])),
+                    self.try_convert_int(String(tmp[byte=7])), self.try_convert_int(String(tmp[byte=8]))
                 )
             elif len(tmp) == 10:
                 temp_simd = SIMD[DType.bool, 8](
-                    self.try_convert_int(tmp[2].__getitem__(0)), self.try_convert_int(tmp[3].__getitem__(0)),
-                    self.try_convert_int(tmp[4].__getitem__(0)), self.try_convert_int(tmp[5].__getitem__(0)),
-                    self.try_convert_int(tmp[6].__getitem__(0)), self.try_convert_int(tmp[7].__getitem__(0)),
-                    self.try_convert_int(tmp[8].__getitem__(0)), self.try_convert_int(tmp[9].__getitem__(0))
+                    self.try_convert_int(String(tmp[byte=2])), self.try_convert_int(String(tmp[byte=3])),
+                    self.try_convert_int(String(tmp[byte=4])), self.try_convert_int(String(tmp[byte=5])),
+                    self.try_convert_int(String(tmp[byte=6])), self.try_convert_int(String(tmp[byte=7])),
+                    self.try_convert_int(String(tmp[byte=8])), self.try_convert_int(String(tmp[byte=9]))
                 )
             elif len(tmp) == 3:  # Condition for 3-bit binary string
                 temp_simd = SIMD[DType.bool, 8](
                     False, False, False, False, False,
-                    False, False, self.try_convert_int(tmp[2].__getitem__(0))
+                    False, False, self.try_convert_int(String(tmp[byte=2]))
                 )
             elif len(tmp) == 5:  # Condition for 3-bit binary string
                 temp_simd = SIMD[DType.bool, 8](
                     False, False, False, False, False,
-                    self.try_convert_int(tmp[2].__getitem__(0)),
-                    self.try_convert_int(tmp[3].__getitem__(0)),
-                    self.try_convert_int(tmp[4].__getitem__(0)),
+                    self.try_convert_int(String(tmp[byte=2])),
+                    self.try_convert_int(String(tmp[byte=3])),
+                    self.try_convert_int(String(tmp[byte=4])),
             )
             elif len(tmp) == 4:  # Condition for 3-bit binary string
                 temp_simd = SIMD[DType.bool, 8](
                     False, False, False, 
                     False, False, False, 
-                    self.try_convert_int(tmp[2].__getitem__(0)),
-                    self.try_convert_int(tmp[3].__getitem__(0))
+                    self.try_convert_int(String(tmp[byte=2])),
+                    self.try_convert_int(String(tmp[byte=3]))
                     )
             elif len(tmp) == 6:  # Condition for 6-bit binary string
                 temp_simd = SIMD[DType.bool, 8](
                     False, False, False, False, 
-                    self.try_convert_int(tmp[2].__getitem__(0)), self.try_convert_int(tmp[3].__getitem__(0)),
-                    self.try_convert_int(tmp[4].__getitem__(0)), self.try_convert_int(tmp[5].__getitem__(0))
+                    self.try_convert_int(String(tmp[byte=2])), self.try_convert_int(String(tmp[byte=3])),
+                    self.try_convert_int(String(tmp[byte=4])), self.try_convert_int(String(tmp[byte=5]))
                 )
             elif len(tmp) == 7:  # Condition for 7-bit binary string
                 temp_simd = SIMD[DType.bool, 8](
-                    False, False, False, self.try_convert_int(tmp[2].__getitem__(0)),
-                    self.try_convert_int(tmp[3].__getitem__(0)), self.try_convert_int(tmp[4].__getitem__(0)),
-                    self.try_convert_int(tmp[5].__getitem__(0)), self.try_convert_int(tmp[6].__getitem__(0))
+                    False, False, False, self.try_convert_int(String(tmp[byte=2])),
+                    self.try_convert_int(String(tmp[byte=3])), self.try_convert_int(String(tmp[byte=4])),
+                    self.try_convert_int(String(tmp[byte=5])), self.try_convert_int(String(tmp[byte=6]))
                 )
 
             if i == 0: main_array = main_array.insert[offset=0](temp_simd)
@@ -153,17 +154,17 @@ struct IEEE754Processor[N: Int]:
         return main_array
 
     # Method to convert an int64 to a float32
-    fn int64_to_float32(self, value: Int) -> Float32:
+    def int64_to_float32(self, value: Int) -> Float32:
         return Float32(value)
 
     # Method to convert an int64 to a float64
-    fn int64_to_float64(self, value: Int) -> Float64:
+    def int64_to_float64(self, value: Int) -> Float64:
         return Float64(value)
 
     # Method to process InlineArray of SIMD[uint8, 8] values (compile-time N)
-    fn process_simd_list(self, simd_list: InlineArray[SIMD[DType.uint8, 8], N]) -> InlineArray[SIMD[DType.bool, 64], N]:
-        var temp_dts = InlineArray[SIMD[DType.bool, 64], N](uninitialized=True)
-        for i in range(N):
+    def process_simd_list(self, simd_list: InlineArray[SIMD[DType.uint8, 8], Self.N]) -> InlineArray[SIMD[DType.bool, 64], Self.N]:
+        var temp_dts = InlineArray[SIMD[DType.bool, 64], Self.N](uninitialized=True)
+        for i in range(Self.N):
             var temp_val = self.uint8_to_bin(simd_list[i])
             temp_dts[i] = temp_val
         return temp_dts

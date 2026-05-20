@@ -4,6 +4,7 @@
 
 ## Features
 - Per‑dtype decoders under `structs/` (two’s‑complement and IEEE‑754).
+- `Float32BinaryReader` / `Float32BinaryWriter` for raw Float32 binary payloads and metadata.
 - Compile‑time generics `[N: Int]` for row count (and `[L: Int]` for column count in `DfReader`).
 - Zero‑fill when binaries are shorter than `N`; truncation when longer.
 - Column‑wise population of an `N × L` `LayoutTensor[DType.float64]` via `aligned_store`.
@@ -13,6 +14,8 @@
 - `bin_to_df.mojo`: Orchestrates decoding and builds the `N × L` tensor via aligned stores.
 - `structs/`
   - `intdecoder.mojo`, `uintdecoder.mojo`, `floatdecoder.mojo`: File readers returning `InlineArray` values.
+  - `float32bin.mojo`: Small raw Float32 binary reader/writer used by downstream model
+    persistence code.
   - `twos_comp.mojo`, `unsigned_int.mojo`: SIMD bit‑to‑integer conversion.
   - `ieee754.mojo`: SIMD bit‑to‑float64 conversion.
 
@@ -76,6 +79,21 @@ var vals = col.bytes_to_int()           # InlineArray[Int64, 1024]
 from read_bin.structs.floatdecoder import float64_column
 var col = float64_column[1024]("price.bin", "/path/")
 var vals = col.bytes_to_float()         # InlineArray[Float64, 1024]
+```
+
+- Raw Float32 binary payload
+```
+from read_bin.structs.float32bin import Float32BinaryWriter
+from read_bin.structs.float32bin import Float32BinaryReader
+
+var writer = Float32BinaryWriter()
+writer.append_i32(1)
+writer.append_f32(0.25)
+writer.write("/tmp/example_float32.bin")
+
+var reader = Float32BinaryReader("/tmp/example_float32.bin")
+var tag = reader.read_i32(0)
+var value = reader.read_f32(4)
 ```
 
 - Build N×L tensor and read values
